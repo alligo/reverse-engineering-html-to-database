@@ -1,0 +1,19 @@
+{
+  "name": "reverse-engineering-html-to-database",
+  "version": "0.1.0",
+  "description": "",
+  "main": "htmltodb.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alligo/reverse-engineering-html-to-database.git"
+  },
+  "author": "Emerson Rocha Luiz <emerson at alligo.com.br>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/alligo/reverse-engineering-html-to-database/issues"
+  },
+  "homepage": "https://github.com/alligo/reverse-engineering-html-to-database#readme"
+}
