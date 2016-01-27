@@ -1,0 +1,12 @@
+var config = {};
+
+config.database = {};
+config.database.name = 'db_htmltodb';
+config.database.host = 'localhost';
+config.database.port = '3306';
+config.database.user = 'root';
+config.database.password = '';
+
+config.htmls_path = '/path/to/your/htmls/files';
+
+module.exports = config;

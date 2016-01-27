@@ -15,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/alligo/reverse-engineering-html-to-database/issues"
   },
-  "homepage": "https://github.com/alligo/reverse-engineering-html-to-database#readme"
+  "homepage": "https://github.com/alligo/reverse-engineering-html-to-database#readme",
+  "dependencies": {
+    "mysql": "^2.10.2",
+    "readdirp": "^2.0.0"
+  }
 }
