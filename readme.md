@@ -1,6 +1,8 @@
 # Reverse Engineering: From HTML to Database v0.1alpha
 
-_Did you lost your site with no Backup? Try [Google Cache Site Recover](https://github.com/alligo/google-cache-site-recover)_
+_Did you lost your site with no Backup? Try [Google Cache Site Recover](https://github.com/alligo/google-cache-site-recover)
+to save your entire site in pure HTML files, than use this tool here to convert
+back to database._
 
 This is a _work-in-progress_ way to recursively parse all HTMLs in a folder and
 save structured data on a database. Since each HTML is unique, is very likely

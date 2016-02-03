@@ -9,8 +9,10 @@
 
 var HTMLToData;
 
-module.exports.parse = function (htmlstring, relativepath) {
+module.exports.parse = function (cb, htmlstring, relativepath) {
+  var error = null, htmlData = null;
   //console.log('@todo HTMLToData.parse', htmlstring, relativepath);
+  cb(error, htmlData);
 };
 
 console.log('DEBUG: loaded htmltodata.js');

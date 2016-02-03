@@ -14,16 +14,18 @@ var DataToDb = require('./bootstrap').requireOneOf(['./datatodb.js', './datatodb
 
 DataToDb.init(config.database);
 
-var nOk = 0, nErrors = 0;
+var nOk = 0, nErrors = 0, validFiles = [];
 
+// Read and prepare all filepaths, Async
 readdirp({root: config.htmls_path, fileFilter: config.file_filters}).on('data', function (entry) {
 
-  console.log(entry.path, entry.fullPath);
-  var content = fs.readFileSync(entry.fullPath);
-  var metadata = HTMLToData.parse(content, entry.path);
-  if (metadata) {
-    DataToDb.save(metadata);
-  }
+  //console.log(entry.path, entry.fullPath);
+  validFiles.push({path: entry.path, fullPath: entry.fullPath});
+  //var content = fs.readFileSync(entry.fullPath);
+  //var metadata = HTMLToData.parse(content, entry.path);
+  //if (metadata) {
+  //  DataToDb.save(metadata);
+  //}
 
   nOk += 1;
 }).on('warn', function (err) {
@@ -33,5 +35,22 @@ readdirp({root: config.htmls_path, fileFilter: config.file_filters}).on('data', 
   nErrors += 1;
   //console.error('fatal error', err);
 }).on('end', function (xpto) {
+  processFiles(validFiles);
   console.log('HTMLtoDB: OK ' + nOk + ', Errors ' + nErrors);
 });
+
+// Main function to receive all paths
+function processFiles(validFiles) {
+  var validFile = null, htmlString = null;
+  if (validFiles && validFiles.length) {
+    console.log(validFiles.length);
+    validFile = validFiles.shift();
+    console.log(validFile);
+    htmlString = fs.readFileSync(validFile.fullPath);
+    HTMLToData.parse(function () {
+      processFiles(validFiles);
+    }, htmlString, validFile.path);
+  } else {
+    console.log('HTMLtoDB: processFiles end');
+  }
+}
