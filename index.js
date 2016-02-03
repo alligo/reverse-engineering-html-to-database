@@ -43,11 +43,21 @@ readdirp({root: config.htmls_path, fileFilter: config.file_filters}).on('data', 
 function processFiles(validFiles) {
   var validFile = null, htmlString = null;
   if (validFiles && validFiles.length) {
-    console.log(validFiles.length);
+    //console.log(validFiles.length);
     validFile = validFiles.shift();
-    console.log(validFile);
+    //console.log(validFile);
     htmlString = fs.readFileSync(validFile.fullPath);
-    HTMLToData.parse(function () {
+    HTMLToData.parse(function (err, htmlData) {
+      if (err) {
+        console.log('HTMLtoDB: HTMLToData.parse ERROR for ' + validFile.path + ': ' + JSON.stringify(err));
+      } else {
+        // save htmlData
+        DataToDb.save(function (err2) {
+          if (err2) {
+            console.log('HTMLtoDB: DataToDb.save ERROR for ' + validFile.path + ': ' + JSON.stringify(err));
+          }
+        }, htmlString);
+      }
       processFiles(validFiles);
     }, htmlString, validFile.path);
   } else {

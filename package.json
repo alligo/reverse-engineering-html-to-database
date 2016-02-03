@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/alligo/reverse-engineering-html-to-database#readme",
   "dependencies": {
-    "htmlparser2": "^3.9.0",
+    "cheerio": "^0.20.0",
     "mysql": "^2.10.2",
     "readdirp": "^2.0.0"
   }

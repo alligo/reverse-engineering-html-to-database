@@ -6,11 +6,22 @@
  * @copyright     Copyright (C) 2016 Alligo LTDA.
  * @author        Emerson Rocha Luiz <emerson at alligo.com.br>
  */
-
+var cheerio = require('cheerio');
 var HTMLToData;
 
+function pageType1($) {
+
+}
+
 module.exports.parse = function (cb, htmlstring, relativepath) {
-  var error = null, htmlData = null;
+  var error = null, htmlData = null, isArticle, articleRoot, $ = cheerio.load(htmlstring);
+  isArticle = $('#k2Container.itemView');
+  articleRoot = $('#k2Container');
+  if (isArticle.length) {
+    console.log('INFO:   OK     articleRoot', relativepath);
+  } else {
+    console.log('INFO:   SKIP   ', relativepath);
+  }
   //console.log('@todo HTMLToData.parse', htmlstring, relativepath);
   cb(error, htmlData);
 };
