@@ -49,7 +49,7 @@ function processFiles(validFiles) {
     htmlString = fs.readFileSync(validFile.fullPath);
     HTMLToData.parse(function (err, htmlData) {
       if (err) {
-        console.log('HTMLtoDB: HTMLToData.parse ERROR for ' + validFile.path + ': ' + JSON.stringify(err));
+        //console.log('HTMLtoDB: HTMLToData.parse ERROR for ' + validFile.path + ': ' + JSON.stringify(err));
       } else {
         // save htmlData
         DataToDb.save(function (err2) {
