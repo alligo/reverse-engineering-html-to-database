@@ -16,8 +16,10 @@ config.database.user = 'root';
 config.database.password = '';
 
 config.htmls_path = '/path/to/your/htmls/files';
+// If parsing a subfolder of your site, but want to prefix the URL with top path:
+config.htmls_path_prefix = '';
 config.file_filters = ['*.html', '*.htm', '*.php', '*.jsp'];
 
 module.exports = config;
 
-console.log('DEBUG: loaded config.dist.js');
+console.log((new Date()).toJSON() + '> DEBUG: loaded config.dist.js');

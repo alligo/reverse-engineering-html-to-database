@@ -12,8 +12,14 @@ var data_categories = require('./bootstrap').requireOneOf(['./data_categories.js
 //var default_category_alias = 'uncategorised';
 var default_category_id = 2;
 var default_created_at = '2016-01-01 12:00:00';
+var default_author_alias = null;
+var default_author_id = 255;
 
-console.log(data_categories.rows);
+//console.log(data_categories.rows);
+
+function authorId(author_alias) {
+  return default_author_id;
+}
 
 /**
  * This function read on JSON array, like data_categories.dist.json
@@ -39,22 +45,6 @@ function categoryId(category_alias) {
 }
 
 /**
- * Helper. Remove line breaks and trim
- *
- * @param   {String}   item
- * @returns {String}
- */
-function clearTrash(item) {
-  var result = null;
-  if (item && item.replace) {
-    //result = item.replace(/[^a-z0-9\s]/gi, '').trim();
-    result = item.replace("\r\n", '').replace("\n", '').trim();
-  }
-
-  return result;
-}
-
-/**
  * On this example, files for URLs article IDs was at the end of a parsed URL,
  * like /folder/article-123
  *
@@ -73,6 +63,91 @@ function id(url) {
 }
 
 /**
+ * Helper. Remove line breaks and trim
+ *
+ * @param   {String}   item
+ * @returns {String}
+ */
+function clearTrash(item) {
+  var result = null;
+  if (item && item.replace) {
+    //result = item.replace(/[^a-z0-9\s]/gi, '').trim();
+    result = item.replace("\r\n", '').replace("\n", '').trim();
+  }
+
+  return result;
+}
+
+/**
+ * For htmlData parsed from a page, check if have at least some basic fields.
+ * If not, will return null
+ *
+ * @param   {Object}  htmlData
+ * @returns {Object}
+ */
+function filterPageResult(htmlData) {
+  if (htmlData) {
+    if (htmlData.id && htmlData.title && htmlData.text) {
+      return htmlData;
+    }
+    //console.log((new Date()).toJSON() + '> NOTICE: filterPageResult ignoring parsed data (no ID / title / text)');
+  }
+  return null;
+}
+
+/**
+ * Scrap article data from page of type 1
+ * 
+ * @param   {\cheerio}   $    cheerio loaded with full htmlstring
+ * @param   {String}     url  
+ * @param   {Integer}    id  
+ * @returns {Object}
+ */
+function pageType1($, url, id) {
+  var htmlData = {}, urlParts, articleRoot = $('#k2Container', {decodeEntities: true});
+
+  if ($('#k2Container .itemTitle').length) {
+    //console.log($('#k2Container .itemTitle').text());
+    //console.log($('#k2Container .itemTitle').clone().children().remove().end().text());
+    htmlData.title = clearTrash($('#k2Container .itemTitle').clone().children().remove().end().text());
+  }
+  if ($('#k2Container .itemAuthor').length) {
+    htmlData.author_raw = clearTrash($('#k2Container .itemAuthor').text());
+  }
+  if ($('#k2Container .itemFullText').length) {
+    htmlData.text = clearTrash($('#k2Container .itemFullText').html());
+  }
+
+  // O this demo, category ID is the upper path (if exist)
+  // /blablala/category-name/article-name-123
+  urlParts = url.split('/');
+  if (urlParts.length > 1) {
+    htmlData.category_raw = urlParts[urlParts.length - 2];
+    htmlData.catid = categoryId(htmlData.category_raw);
+  }
+  htmlData.created_at = default_created_at;
+  //htmlData.modified_at = default_created_at;
+
+  htmlData.created_by = authorId(htmlData.author_raw);
+  htmlData.url_raw = url;
+  htmlData.id = id;
+
+//   -- OK -- `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+//   -- OK -- `title` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '0',
+//   -- OK -- `text` text COLLATE utf8_unicode_ci NOT NULL,
+//   -- OK -- `url_raw` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+//   -- OK -- `category_raw` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+//  `tags_raw` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+//   -- OK -- `author_raw` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+//  `created_at` datetime NOT NULL,
+//  `modified_at` datetime NOT NULL,
+//  console.log((new Date()).toJSON() + '> htmlData', htmlData);
+
+  //return $.html();
+  return htmlData;
+}
+
+/**
  * On this example, files for URLs /folder/article-123 was saved as 
  * /folder/article-123.html, so we reverse this logic
  *
@@ -88,71 +163,14 @@ function url(relativePath) {
   return relativePath;
 }
 
-/**
- * Scrap article data from page of type 1
- * 
- * @param   {\cheerio}   $    cheerio loaded with full htmlstring
- * @param   {String}     url  
- * @param   {Integer}    id  
- * @returns {Object}
- */
-function pageType1($, url, id) {
-  var htmlData = {}, urlParts, articleRoot = $('#k2Container');
-
-  if ($('#k2Container .itemTitle').length) {
-    htmlData.title = clearTrash($('#k2Container .itemTitle').clone().children().remove().end().text());
-  }
-  if ($('#k2Container .itemAuthor').length) {
-    htmlData.author_raw = clearTrash($('#k2Container .itemAuthor').text());
-  }
-  if ($('#k2Container .itemFullText').length) {
-    //htmlData.text = clearTrash($('#k2Container .itemFullText').html());
-  }
-
-  // O this demo, category ID is the upper path (if exist)
-  // /blablala/category-name/article-name-123
-  urlParts = url.split('/');
-  console.log('urlParts', urlParts, url);
-  if (urlParts.length > 1) {
-    htmlData.category_alias = urlParts[urlParts.length - 2];
-    console.log('catAlias', htmlData.category_alias);
-    htmlData.catid = categoryId(htmlData.category_alias);
-    console.log('htmlData.catid', htmlData.catid);
-  }
-  htmlData.created_at = default_created_at;
-  //htmlData.modified_at = default_created_at;
-
-  if (htmlData.title && htmlData.author_raw) {
-    if (url) {
-      htmlData.url_raw = url;
-    }
-    if (id) {
-      htmlData.id = id;
-    }
-  }
-//   -- OK -- `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-//   -- OK -- `title` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '0',
-//   -- OK -- `text` text COLLATE utf8_unicode_ci NOT NULL,
-//   -- OK -- `url_raw` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-//   -- OK -- `category_raw` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-//  `tags_raw` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-//   -- OK -- `author_raw` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-//  `created_at` datetime NOT NULL,
-//  `modified_at` datetime NOT NULL,
-  console.log('htmlData', htmlData);
-
-  //return $.html();
-  return htmlData;
-}
-
 module.exports.parse = function (cb, htmlstring, relativepath) {
   var error = null, htmlData = null, isArticle, articleRoot, $ = cheerio.load(htmlstring);
   isArticle = $('#k2Container.itemView');
   articleRoot = $('#k2Container');
   if (isArticle.length) {
-    console.log('INFO:   OK     articleRoot', relativepath);
+    //console.log((new Date()).toJSON() + '> INFO:   OK     articleRoot', relativepath);
   } else {
-    //console.log('INFO:   SKIP   ', relativepath);
+    //console.log((new Date()).toJSON() + '> INFO:   SKIP   ', relativepath);
   }
 
   //if ($('#k2Container.itemView').length) {
@@ -165,9 +183,10 @@ module.exports.parse = function (cb, htmlstring, relativepath) {
   } else {
     // ...
   }
+  //htmlData = filterPageResult(htmlData);
 
   //console.log('@todo HTMLToData.parse', htmlstring, relativepath);
   cb(!htmlData, htmlData);
 };
 
-console.log('DEBUG: loaded htmltodata.js');
+console.log((new Date()).toJSON() + '> DEBUG: loaded htmltodata.js');

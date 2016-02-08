@@ -36,31 +36,40 @@ readdirp({root: config.htmls_path, fileFilter: config.file_filters}).on('data', 
   //console.error('fatal error', err);
 }).on('end', function (xpto) {
   processFiles(validFiles);
-  console.log('HTMLtoDB: OK ' + nOk + ', Errors ' + nErrors);
+  console.log((new Date()).toJSON() + '> INFO: HTMLtoDB OK ' + nOk + ', Errors ' + nErrors);
 });
 
 // Main function to receive all paths
 function processFiles(validFiles) {
   var validFile = null, htmlString = null;
   if (validFiles && validFiles.length) {
-    //console.log(validFiles.length);
+
     validFile = validFiles.shift();
-    //console.log(validFile);
+
     htmlString = fs.readFileSync(validFile.fullPath);
     HTMLToData.parse(function (err, htmlData) {
       if (err) {
         //console.log('HTMLtoDB: HTMLToData.parse ERROR for ' + validFile.path + ': ' + JSON.stringify(err));
       } else {
-        // save htmlData
-        DataToDb.save(function (err2) {
-          if (err2) {
-            console.log('HTMLtoDB: DataToDb.save ERROR for ' + validFile.path + ': ' + JSON.stringify(err));
-          }
-        }, htmlData);
+        if (htmlData && htmlData.id) {
+          console.log((new Date()).toJSON() + '> INFO processFiles id now', htmlData.id);
+
+          // save htmlData
+          DataToDb.save(function (err2) {
+            if (err2) {
+              console.log((new Date()).toJSON() + '> ERROR HTMLtoDB: DataToDb.save for ' + validFile.path + ': ' + JSON.stringify(err));
+            }
+            processFiles(validFiles);
+          }, htmlData);
+        } else {
+          processFiles(validFiles);
+        }
+
+
       }
-      processFiles(validFiles);
-    }, htmlString, validFile.path);
+      //processFiles(validFiles);
+    }, htmlString, config.htmls_path_prefix + validFile.path);
   } else {
-    console.log('HTMLtoDB: processFiles end');
+    console.log((new Date()).toJSON() + '> INFO HTMLtoDB: processFiles end');
   }
 }

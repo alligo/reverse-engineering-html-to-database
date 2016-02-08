@@ -16,16 +16,31 @@ module.exports.init = function (Conf) {
     port: Conf.port,
     user: Conf.user,
     password: Conf.password,
-    database: Conf.database
+    database: Conf.name
   });
   //console.log('DEBUG: datatodb ', conn);
 };
 
-module.exports.save = function (article) {
-  console.log('@todo', article);
+module.exports.save = function (cb, htmlData) {
+  var error = null, html = null;
+  if (htmlData) {
+    //console.log((new Date()).toJSON() + '> @todo DataToDb.save', htmlData);
+    conn.query('REPLACE INTO articles SET ?', htmlData, function (err, result) {
+      if (err) {
+        console.log((new Date()).toJSON() + '> ERROR: DataToDb inserted ', err);
+        throw err;
+      }
+
+      console.log((new Date()).toJSON() + '> INFO: DataToDb inserted ', result.insertId);
+    });
+  } else {
+    //console.log((new Date()).toJSON() + '> INFO: DataToDb');
+  }
+
+  cb && cb(error);
 };
 module.exports.end = function () {
   conn.end();
 };
 
-console.log('DEBUG: loaded datatodb.js');
+console.log((new Date()).toJSON() + '> DEBUG: loaded datatodb.js');
