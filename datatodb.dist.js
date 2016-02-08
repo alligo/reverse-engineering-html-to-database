@@ -28,16 +28,18 @@ module.exports.save = function (cb, htmlData) {
     conn.query('REPLACE INTO articles SET ?', htmlData, function (err, result) {
       if (err) {
         console.log((new Date()).toJSON() + '> ERROR: DataToDb inserted ', err);
-        throw err;
+        //throw err;
+      } else {
+        console.log((new Date()).toJSON() + '> INFO: DataToDb inserted ', result.insertId);
       }
-
-      console.log((new Date()).toJSON() + '> INFO: DataToDb inserted ', result.insertId);
+      
+      cb && cb(err);
     });
   } else {
     //console.log((new Date()).toJSON() + '> INFO: DataToDb');
+    cb && cb(error);
   }
-
-  cb && cb(error);
+  
 };
 module.exports.end = function () {
   conn.end();

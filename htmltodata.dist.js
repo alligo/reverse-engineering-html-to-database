@@ -183,7 +183,7 @@ module.exports.parse = function (cb, htmlstring, relativepath) {
   } else {
     // ...
   }
-  //htmlData = filterPageResult(htmlData);
+  htmlData = filterPageResult(htmlData);
 
   //console.log('@todo HTMLToData.parse', htmlstring, relativepath);
   cb(!htmlData, htmlData);
