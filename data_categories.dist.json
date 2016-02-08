@@ -1,0 +1,14 @@
+{
+	"table": "table_name",
+	"rows":
+	[
+		{
+			"id": 2,
+			"alias": "category-alias-a"
+		},
+		{
+			"id": 7,
+			"alias": "category-alias-b"
+		}
+    ]
+}
