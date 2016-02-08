@@ -56,7 +56,7 @@ function processFiles(validFiles) {
           if (err2) {
             console.log('HTMLtoDB: DataToDb.save ERROR for ' + validFile.path + ': ' + JSON.stringify(err));
           }
-        }, htmlString);
+        }, htmlData);
       }
       processFiles(validFiles);
     }, htmlString, validFile.path);
