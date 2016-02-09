@@ -1,4 +1,4 @@
-# Reverse Engineering: From HTML to Database v0.2alpha
+# Reverse Engineering: From HTML to Database v0.2.1alpha
 
 _Did you lost your site with no Backup? Try [Google Cache Site Recover](https://github.com/alligo/google-cache-site-recover)
 to save your entire site in pure HTML files, than use this tool here to convert
@@ -28,6 +28,14 @@ By default, it will try use `htmltodata.dist.js`, file that was used to import
 HTML saved from a Joomla CMS site with K2 extension. Since this is very 
 specific, you should provably copy `htmltodata.dist.js` to `htmltodata.js`, and
 make your changes, for your own HTML content.
+
+### Custom mapping (i.g. category alias to category id)
+See folder `adicional_info`. If your HTML is very similar to what was used on
+this default HTML parser, you can change the JSON files to map categories to
+your own category IDs
+
+In same logic, you can do around the same for another mappings. Maybe user
+who created the HTML.
 
 ## How to customize database save method (optimal)
 
