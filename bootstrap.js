@@ -6,6 +6,7 @@
  * @author        Emerson Rocha Luiz <emerson at alligo.com.br>
  */
 
+var startTime = null;
 
 /**
  * Like require, but try different files, in order
@@ -27,10 +28,22 @@ function requireOneOf(filepaths) {
       return require(filepaths[i]);
     }
   }
-  console.log('Error! No file to load', filepaths);
+  console.log((new Date()).toJSON() + '> ERROR requireOneOf: No file to load', filepaths);
   return false;
 }
 
+function start() {
+  startTime = new Date();
+}
+
+function totalTime(jobsNumber, info) {
+  var end = new Date();
+  var time = ((end.getTime() - startTime.getTime()) / 1000 / 60); // min
+  console.log((new Date()).toJSON() + '> INFO : totalTime ' + info + ' '+ time.toFixed(2) + 'min. ' + (jobsNumber / time).toFixed(2) + ' jobs/min');
+}
+
 module.exports = {
-  requireOneOf: requireOneOf
+  requireOneOf: requireOneOf,
+  start: start,
+  totalTime: totalTime
 };

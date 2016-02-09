@@ -11,13 +11,17 @@
 
 var fs = require('fs');
 var readdirp = require('readdirp');
-var config = require('./bootstrap').requireOneOf(['./config.js', './config.dist.js']);
+var boostrap = require('./bootstrap');
+var config = boostrap.requireOneOf(['./config.js', './config.dist.js']);
 var HTMLToData = require('./bootstrap').requireOneOf(['./htmltodata.js', './htmltodata.dist.js']);
-var DataToDb = require('./bootstrap').requireOneOf(['./datatodb.js', './datatodb.dist.js']);
+var DataToDb = boostrap.requireOneOf(['./datatodb.js', './datatodb.dist.js']);
 
 DataToDb.init(config.database);
 
 var nOk = 0, nErrors = 0, validFiles = [];
+
+// Start profile
+boostrap.start();
 
 // Read and prepare all filepaths, Async
 readdirp({root: config.htmls_path, fileFilter: config.file_filters}).on('data', function (entry) {
@@ -36,6 +40,7 @@ readdirp({root: config.htmls_path, fileFilter: config.file_filters}).on('data', 
 
   processFiles(validFiles);
   console.log((new Date()).toJSON() + '> INFO: HTMLtoDB OK ' + nOk + ', Errors ' + nErrors);
+  boostrap.totalTime(nOk + nErrors, "[Read Files from directories] ");
 });
 
 // Main function to receive all paths
@@ -73,5 +78,7 @@ function processFiles(validFiles) {
     }, htmlString, config.htmls_path_prefix + validFile.path);
   } else {
     console.log((new Date()).toJSON() + '> INFO HTMLtoDB: processFiles (loop only) end');
+      boostrap.totalTime(nOk, "[Parse and Database save] ");
+    DataToDb.end();
   }
 }

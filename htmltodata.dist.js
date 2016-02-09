@@ -141,10 +141,10 @@ function clearTrash(item) {
  */
 function filterPageResult(htmlData) {
   if (htmlData) {
-    if (htmlData.id && htmlData.title && htmlData.text) {
-//    if (htmlData.id && parseInt(htmlData.id, 10)
-//            && htmlData.title && htmlData.title.length > 2
-//            && htmlData.text) {
+//    if (htmlData.id && htmlData.title && htmlData.text) {
+    if (htmlData.id && parseInt(htmlData.id, 10)
+            && htmlData.title && htmlData.title.length > 2
+            && htmlData.text) {
       return htmlData;
     }
     //console.log((new Date()).toJSON() + '> NOTICE: filterPageResult ignoring parsed data (no ID / title / text)');
@@ -210,23 +210,6 @@ module.exports.parse = function (cb, htmlstring, relativepath) {
   }
 
   // Now you can create new checks or even create new parser DOMToMetadata2
-
-
-//  isArticle = $('#k2Container.itemView');
-//  articleRoot = $('#k2Container');
-//  if (isArticle.length) {
-//    //console.log((new Date()).toJSON() + '> INFO:   OK     articleRoot', relativepath);
-//  } else {
-//    //console.log((new Date()).toJSON() + '> INFO:   SKIP   ', relativepath);
-//  }
-//
-//  if ($('#k2Container.colunistas-page').length) {
-//    // "Colunistas" page
-//    htmlData = pageType1($, ArticleUrl(relativepath), ArticleId(ArticleUrl(relativepath)));
-//  } else if ($('#k2Container .itemFullText').length) {
-//    // Enciclopedia-like pages
-//    htmlData = pageType1($, ArticleUrl(relativepath), ArticleId(ArticleUrl(relativepath)));
-//  }
 
   htmlData = filterPageResult(htmlData);
 
