@@ -8,17 +8,13 @@
  */
 var cheerio = require('cheerio');
 var HTMLToData;
-var data_categories = require('./bootstrap').requireOneOf(['./data_categories.json', './data_categories.dist.json']);
+var data_categories = require('./bootstrap').requireOneOf(['./aditional_info/data_categories.json', './aditional_info/data_categories.dist.json']);
 //var default_category_alias = 'uncategorised';
 var default_category_id = 2;
 var default_created_at = '2016-01-01 12:00:00';
 var default_author_alias = null;
 var default_author_id = 255;
 
-//console.log(data_categories.rows);
-
-//REPLACE INTO db_joomla.pg2016_content (id, title, alias, catid, introtext, created_by, created_by_alias, `language`, access, state)
-//SELECT id, title, slug, catid, `text`, created_by, author_raw, '*', '1', '1' FROM db_htmltodb.articles
 
 /**
  * Convert Author Alias to an Author ID
@@ -30,6 +26,37 @@ function ArticleAuthorId(author_alias) {
   // If you really want this, you can copy same logic as ArticleCategoryId.
   // but for this author, just use a default author is sufficient.
   return default_author_id;
+}
+
+/**
+ * Convert one url to article Slug
+ * Change if you need
+ *
+ * @example
+ * ArticleSlug('/path/to/article-alias-123') // article-alias
+ * ArticleSlug('/path/to/article-alias123') // article-alias123
+ * 
+ * @param   {String}  url
+ * @returns {String}
+ */
+function ArticleSlug(url) {
+  var slug = null, urlParts, urlParts2, tmp, tmp2;
+  if (url && url.split) {
+    urlParts = url.split('/');
+    if (urlParts.length > 1) {
+      tmp = urlParts[urlParts.length - 1];
+      urlParts2 = tmp.split('-');
+
+      // If last part of URL is integer, ignore from alias
+      if (parseInt(urlParts2[urlParts2.length - 1], 10)) {
+        urlParts2.pop();
+        slug = urlParts2.join('-');
+      } else {
+        slug = urlParts2.join('-');
+      }
+    }
+  }
+  return slug;
 }
 
 /**
@@ -115,6 +142,9 @@ function clearTrash(item) {
 function filterPageResult(htmlData) {
   if (htmlData) {
     if (htmlData.id && htmlData.title && htmlData.text) {
+//    if (htmlData.id && parseInt(htmlData.id, 10)
+//            && htmlData.title && htmlData.title.length > 2
+//            && htmlData.text) {
       return htmlData;
     }
     //console.log((new Date()).toJSON() + '> NOTICE: filterPageResult ignoring parsed data (no ID / title / text)');
@@ -130,7 +160,7 @@ function filterPageResult(htmlData) {
  * @param   {Integer}    id  
  * @returns {Object}
  */
-function pageType1($, url, id) {
+function DOMToMetadata1($, url, id) {
   var htmlData = {}, urlParts, articleRoot = $('#k2Container', {decodeEntities: true});
 
   if ($('#k2Container .itemTitle').length) {
@@ -150,10 +180,11 @@ function pageType1($, url, id) {
     htmlData.category_raw = urlParts[urlParts.length - 2];
     htmlData.catid = ArticleCategoryId(htmlData.category_raw);
   }
-  htmlData.slug = urlParts[urlParts.length - 1];
+
   htmlData.created_at = default_created_at;
   //htmlData.modified_at = default_created_at;
 
+  htmlData.slug = ArticleSlug(url);
   htmlData.created_by = ArticleAuthorId(htmlData.author_raw);
   htmlData.url_raw = url;
   htmlData.id = id;
@@ -161,22 +192,42 @@ function pageType1($, url, id) {
   return htmlData;
 }
 
+/**
+ * Placeholder. Create your custom parsers
+ *
+ * @returns {String}
+ */
+function DOMToMetadata2() {
+  return "@todo create your own DOM to Article Metadata";
+}
+
 module.exports.parse = function (cb, htmlstring, relativepath) {
-  var error = null, htmlData = null, isArticle, articleRoot, $ = cheerio.load(htmlstring);
-  isArticle = $('#k2Container.itemView');
-  articleRoot = $('#k2Container');
-  if (isArticle.length) {
-    //console.log((new Date()).toJSON() + '> INFO:   OK     articleRoot', relativepath);
-  } else {
-    //console.log((new Date()).toJSON() + '> INFO:   SKIP   ', relativepath);
+  var error = null, htmlData = null, /*isArticle, articleRoot, */$ = cheerio.load(htmlstring);
+
+  // Simple check if this is a parseable page that DOMToMetadata1() know
+  if ($('#k2Container .itemFullText').length) {
+    htmlData = DOMToMetadata1($, ArticleUrl(relativepath), ArticleId(ArticleUrl(relativepath)));
   }
 
-  //if ($('#k2Container.itemView').length) {
-  if ($('#k2Container.colunistas-page').length) {
-    htmlData = pageType1($, ArticleUrl(relativepath), ArticleId(ArticleUrl(relativepath)));
-  } else {
-    // ...
-  }
+  // Now you can create new checks or even create new parser DOMToMetadata2
+
+
+//  isArticle = $('#k2Container.itemView');
+//  articleRoot = $('#k2Container');
+//  if (isArticle.length) {
+//    //console.log((new Date()).toJSON() + '> INFO:   OK     articleRoot', relativepath);
+//  } else {
+//    //console.log((new Date()).toJSON() + '> INFO:   SKIP   ', relativepath);
+//  }
+//
+//  if ($('#k2Container.colunistas-page').length) {
+//    // "Colunistas" page
+//    htmlData = pageType1($, ArticleUrl(relativepath), ArticleId(ArticleUrl(relativepath)));
+//  } else if ($('#k2Container .itemFullText').length) {
+//    // Enciclopedia-like pages
+//    htmlData = pageType1($, ArticleUrl(relativepath), ArticleId(ArticleUrl(relativepath)));
+//  }
+
   htmlData = filterPageResult(htmlData);
 
   cb(!htmlData, htmlData);
