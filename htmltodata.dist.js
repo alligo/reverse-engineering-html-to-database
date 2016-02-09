@@ -17,12 +17,20 @@ var default_author_id = 255;
 
 //console.log(data_categories.rows);
 
-function authorId(author_alias) {
+//REPLACE INTO db_joomla.pg2016_content (id, title, alias, catid, introtext, created_by, created_by_alias, `language`, access, state)
+//SELECT id, title, slug, catid, `text`, created_by, author_raw, '*', '1', '1' FROM db_htmltodb.articles
+
+/**
+ * Convert Author Alias to an Author ID
+ * @param   {String}   author_alias
+ * @returns {Number}
+ */
+function ArticleAuthorId(author_alias) {
+
+  // If you really want this, you can copy same logic as ArticleCategoryId.
+  // but for this author, just use a default author is sufficient.
   return default_author_id;
 }
-
-// //REPLACE INTO db_joomla.pg2016_content (id, title, alias, catid, introtext, created_by, created_by_alias, `language`, access, state)
-// //SELECT id, title, slug, catid, `text`, created_by, author_raw, '*', '1', '1' FROM db_htmltodb.articles
 
 /**
  * This function read on JSON array, like data_categories.dist.json
@@ -35,7 +43,7 @@ function authorId(author_alias) {
  * @param   {String}   category_alias
  * @returns {Integer}
  */
-function categoryId(category_alias) {
+function ArticleCategoryId(category_alias) {
   var i;
   if (data_categories && data_categories.rows) {
     for (i = 0; i < data_categories.rows.length; i++) {
@@ -54,7 +62,7 @@ function categoryId(category_alias) {
  * @param   {String}  url
  * @returns {String}
  */
-function id(url) {
+function ArticleId(url) {
   var uid = null, temp;
   if (url && url.split) {
     temp = url.split('-').pop();
@@ -63,6 +71,22 @@ function id(url) {
     }
   }
   return uid;
+}
+
+/**
+ * On this example, files for URLs /folder/article-123 was saved as 
+ * /folder/article-123.html, so we reverse this logic
+ *
+ * @param   {String}  relativePath
+ * @returns {String}
+ */
+function  ArticleUrl(relativePath) {
+
+  if (relativePath.slice(-5) === '.html') {
+    return relativePath.slice(0, -5);
+  }
+
+  return relativePath;
 }
 
 /**
@@ -110,8 +134,6 @@ function pageType1($, url, id) {
   var htmlData = {}, urlParts, articleRoot = $('#k2Container', {decodeEntities: true});
 
   if ($('#k2Container .itemTitle').length) {
-    //console.log($('#k2Container .itemTitle').text());
-    //console.log($('#k2Container .itemTitle').clone().children().remove().end().text());
     htmlData.title = clearTrash($('#k2Container .itemTitle').clone().children().remove().end().text());
   }
   if ($('#k2Container .itemAuthor').length) {
@@ -126,36 +148,17 @@ function pageType1($, url, id) {
   urlParts = url.split('/');
   if (urlParts.length > 1) {
     htmlData.category_raw = urlParts[urlParts.length - 2];
-    htmlData.catid = categoryId(htmlData.category_raw);
+    htmlData.catid = ArticleCategoryId(htmlData.category_raw);
   }
   htmlData.slug = urlParts[urlParts.length - 1];
   htmlData.created_at = default_created_at;
   //htmlData.modified_at = default_created_at;
 
-  htmlData.created_by = authorId(htmlData.author_raw);
+  htmlData.created_by = ArticleAuthorId(htmlData.author_raw);
   htmlData.url_raw = url;
   htmlData.id = id;
 
-//  console.log((new Date()).toJSON() + '> htmlData', htmlData);
-
-  //return $.html();
   return htmlData;
-}
-
-/**
- * On this example, files for URLs /folder/article-123 was saved as 
- * /folder/article-123.html, so we reverse this logic
- *
- * @param   {String}  relativePath
- * @returns {String}
- */
-function url(relativePath) {
-
-  if (relativePath.slice(-5) === '.html') {
-    return relativePath.slice(0, -5);
-  }
-
-  return relativePath;
 }
 
 module.exports.parse = function (cb, htmlstring, relativepath) {
@@ -170,17 +173,12 @@ module.exports.parse = function (cb, htmlstring, relativepath) {
 
   //if ($('#k2Container.itemView').length) {
   if ($('#k2Container.colunistas-page').length) {
-    //htmlData = pageType1($('#k2Container'));
-    //htmlData = pageType1(htmlstring);
-    htmlData = pageType1($, url(relativepath), id(url(relativepath)));
-    //htmlData = pageType1($, relativepath);
-    //console.log(relativepath, htmlData);
+    htmlData = pageType1($, ArticleUrl(relativepath), ArticleId(ArticleUrl(relativepath)));
   } else {
     // ...
   }
   htmlData = filterPageResult(htmlData);
 
-  //console.log('@todo HTMLToData.parse', htmlstring, relativepath);
   cb(!htmlData, htmlData);
 };
 
