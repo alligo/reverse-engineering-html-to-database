@@ -21,6 +21,9 @@ function authorId(author_alias) {
   return default_author_id;
 }
 
+// //REPLACE INTO db_joomla.pg2016_content (id, title, alias, catid, introtext, created_by, created_by_alias, `language`, access, state)
+// //SELECT id, title, slug, catid, `text`, created_by, author_raw, '*', '1', '1' FROM db_htmltodb.articles
+
 /**
  * This function read on JSON array, like data_categories.dist.json
  * and try to convert one article alias to ID. If you want to rebuild
@@ -125,6 +128,7 @@ function pageType1($, url, id) {
     htmlData.category_raw = urlParts[urlParts.length - 2];
     htmlData.catid = categoryId(htmlData.category_raw);
   }
+  htmlData.slug = urlParts[urlParts.length - 1];
   htmlData.created_at = default_created_at;
   //htmlData.modified_at = default_created_at;
 
@@ -132,15 +136,6 @@ function pageType1($, url, id) {
   htmlData.url_raw = url;
   htmlData.id = id;
 
-//   -- OK -- `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-//   -- OK -- `title` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '0',
-//   -- OK -- `text` text COLLATE utf8_unicode_ci NOT NULL,
-//   -- OK -- `url_raw` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-//   -- OK -- `category_raw` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-//  `tags_raw` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-//   -- OK -- `author_raw` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-//  `created_at` datetime NOT NULL,
-//  `modified_at` datetime NOT NULL,
 //  console.log((new Date()).toJSON() + '> htmlData', htmlData);
 
   //return $.html();

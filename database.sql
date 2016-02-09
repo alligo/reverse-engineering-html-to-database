@@ -2,6 +2,7 @@ CREATE TABLE `articles` (
 	`id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
 	`title` VARCHAR(255) NOT NULL DEFAULT '0' COLLATE 'utf8_unicode_ci',
 	`text` TEXT NOT NULL COLLATE 'utf8_unicode_ci',
+	`slug` VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8_unicode_ci',
 	`url_raw` VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8_unicode_ci',
 	`category_raw` VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8_unicode_ci',
 	`catid` INT(10) UNSIGNED NULL DEFAULT NULL,
