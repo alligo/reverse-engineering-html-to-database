@@ -153,6 +153,40 @@ function filterPageResult(htmlData) {
 }
 
 /**
+ * Convert one type of brazilian string date to a valid MariaDB datetime
+ * @example
+ * StringToDate('Segunda, 05 Outubro 2015 00:01'); // 2015-08-05 00:01:00
+ * 
+ * 
+ * @param   {String}   date_string
+ * @returns {String}
+ */
+function StringToDate(date_string) {
+  var result = null, tmp1, tpm2, dic = {
+    janeiro : "01",
+    fevereiro : "02",
+    março : "03",
+    abril : "04",
+    maio : "05",
+    junho : "06",
+    julho : "07",
+    agosto : "08",
+    setembro : "09",
+    outubro : "10",
+    novembro : "11",
+    dezembro : "12",
+  };
+  tmp1 = date_string.split(' ');
+  if (tmp1.length === 5) {
+    if (dic[tmp1[2].toLowerCase()]) {
+      result = tmp1[3] + '-' + dic[tmp1[2].toLowerCase()] + '-' + tmp1[1]
+      + ' ' + tmp1[4] + ':00';
+    }
+  }
+  return result;
+}
+
+/**
  * Scrap article data from page of type 1
  * 
  * @param   {\cheerio}   $    cheerio loaded with full htmlstring
@@ -169,6 +203,9 @@ function DOMToMetadata1($, url, id) {
   if ($('#k2Container .itemAuthor').length) {
     htmlData.author_raw = clearTrash($('#k2Container .itemAuthor').text());
   }
+  if ($('#k2Container .itemDateCreated').length) {
+    htmlData.created_at = StringToDate(clearTrash($('#k2Container .itemDateCreated').text()));
+  }
   if ($('#k2Container .itemFullText').length) {
     htmlData.text = clearTrash($('#k2Container .itemFullText').html());
   }
@@ -181,7 +218,7 @@ function DOMToMetadata1($, url, id) {
     htmlData.catid = ArticleCategoryId(htmlData.category_raw);
   }
 
-  htmlData.created_at = default_created_at;
+  htmlData.created_at = htmlData.created_at || default_created_at;
   //htmlData.modified_at = default_created_at;
 
   htmlData.slug = ArticleSlug(url);

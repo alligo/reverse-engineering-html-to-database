@@ -22,10 +22,10 @@ module.exports.init = function (Conf) {
 };
 
 module.exports.save = function (cb, htmlData) {
-  var error = null, html = null;
+  var error = null, html = null, query;
   if (htmlData) {
     //console.log((new Date()).toJSON() + '> @todo DataToDb.save', htmlData);
-    conn.query('REPLACE INTO articles SET ?', htmlData, function (err, result) {
+    query = conn.query('REPLACE INTO articles SET ?', htmlData, function (err, result) {
       if (err) {
         console.log((new Date()).toJSON() + '> ERROR: DataToDb inserted ', err);
         //throw err;
@@ -33,8 +33,10 @@ module.exports.save = function (cb, htmlData) {
         console.log((new Date()).toJSON() + '> INFO: DataToDb inserted ', result.insertId);
       }
       
+      
       cb && cb(err);
     });
+    //console.log((new Date()).toJSON() + '> DEBUG DataToDb query', query);
   } else {
     //console.log((new Date()).toJSON() + '> INFO: DataToDb');
     cb && cb(error);
