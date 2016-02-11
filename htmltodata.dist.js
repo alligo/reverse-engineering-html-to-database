@@ -125,12 +125,54 @@ function ArticleUrl(relativePath) {
 function clearNewLines(item) {
   var result = null;
   if (item && item.replace) {
-    //result = item.replace(/[^a-z0-9\s]/gi, '').trim();
-    //result = item.replace("\r\n", '').replace("\n", '').trim();
-    result = item.replace(/(\r\n|\n|\r)/gm,"").replace("\n", '').trim();
+    result = item.replace(/(\r\n|\n|\r)/gm, "").replace("\n", '').trim();
   }
 
   return result;
+}
+/**
+ * Helper. Remove common MSWord trash
+ * WARNING: this helper check if content is a tipical MSWord HTML. If is not,
+ * will just return the same content. Maybe this is not what you want.
+ *
+ * @see http://stackoverflow.com/questions/16417479/jquery-remove-ms-word-format-from-text-area
+ *
+ * @param   {String}  text_string
+ * @returns {String}
+ */
+function cleanMSWord(text_string) {
+
+  if (!text_string || !text_string.indexOf ||
+          (text_string.indexOf('MsoNormal') === -1
+                  && text_string.indexOf('MsoBody') === -1)) {
+
+    // Maybe is just not MSWord stuff or is just not a String. Just avoid go ahead
+    return text_string;
+  }
+
+  // 1. remove line breaks / Mso classes
+  var stringStripper = /(\n|\r| class=(")?Mso[a-zA-Z]+(")?)/g;
+  var output = text_string.replace(stringStripper, ' ');
+  // 2. strip Word generated HTML comments
+  var commentSripper = new RegExp('<!--(.*?)-->', 'g');
+  var output = output.replace(commentSripper, '');
+  var tagStripper = new RegExp('<(/)*(meta|link|span|\\?xml:|st1:|o:|font)(.*?)>', 'gi');
+  // 3. remove tags leave content if any
+  output = output.replace(tagStripper, '');
+  // 4. Remove everything in between and including tags '<style(.)style(.)>'
+  var badTags = ['style', 'script', 'applet', 'embed', 'noframes', 'noscript'];
+
+  for (var i = 0; i < badTags.length; i++) {
+    tagStripper = new RegExp('<' + badTags[i] + '.*?' + badTags[i] + '(.*?)>', 'gi');
+    output = output.replace(tagStripper, '');
+  }
+  // 5. remove attributes ' style="..."'
+  var badAttributes = ['style', 'start'];
+  for (var i = 0; i < badAttributes.length; i++) {
+    var attributeStripper = new RegExp(' ' + badAttributes[i] + '="(.*?)"', 'gi');
+    output = output.replace(attributeStripper, '');
+  }
+  return output;
 }
 
 /**
@@ -212,7 +254,7 @@ function StringToDate(date_string) {
  * @returns {Object}
  */
 function DOMToMetadata1($, url, id) {
-  var htmlData = {}, urlParts, articleRoot = $('#k2Container', {decodeEntities: true}), i = 0;
+  var htmlData = {}, urlParts, temp = $('#k2Container', {decodeEntities: true}), i = 0;
 
   if ($('#k2Container .itemTitle').length) {
     htmlData.title = clearNewLines($('#k2Container .itemTitle').clone().children().remove().end().text());
@@ -235,24 +277,30 @@ function DOMToMetadata1($, url, id) {
   }
 
   if ($('#k2Container .itemFullText').length) {
-    
+
     // DANGER: .html will return even <script> tags. Do not remove clearScriptTags()
     //         if you really are not sure about this.
-    htmlData.text = clearScriptTags(clearNewLines($('#k2Container .itemFullText').html()));
+    htmlData.text = cleanMSWord(clearScriptTags(clearNewLines($('#k2Container .itemFullText').html())));
   }
 
   if ($('#k2Container .itemIntroText').length) {
-    htmlData.text_intro = clearNewLines($('#k2Container .itemIntroText').text());
+    htmlData.text_intro = cleanMSWord(clearNewLines($('#k2Container .itemIntroText').text()));
   } else if ($('#k2Container .itemFullText p').length) {
 
     // Page do not make clear what is intro text. Get First non-empty paragraph
-    i = 0;
+    i = -1;
     do {
+      i++;
       if (clearNewLines($($('#k2Container .itemFullText p')[i]).text().trim())) {
-        htmlData.text_intro = clearNewLines($($('#k2Container .itemFullText p')[i]).text().trim());
+        temp = cleanMSWord(clearNewLines($($('#k2Container .itemFullText p')[i]).text().trim()));
+        if (temp.length < 64) {
+
+          // Too short. Provably just Spamm and not useful
+          continue;
+        }
+        htmlData.text_intro = temp;
         break;
       }
-      i++;
     } while (i < $('#k2Container .itemFullText p').length);
   } else {
     htmlData.text_intro = null;
