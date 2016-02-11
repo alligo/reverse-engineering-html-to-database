@@ -122,12 +122,28 @@ function ArticleUrl(relativePath) {
  * @param   {String}   item
  * @returns {String}
  */
-function clearTrash(item) {
+function clearNewLines(item) {
   var result = null;
   if (item && item.replace) {
     //result = item.replace(/[^a-z0-9\s]/gi, '').trim();
     //result = item.replace("\r\n", '').replace("\n", '').trim();
     result = item.replace(/(\r\n|\n|\r)/gm,"").replace("\n", '').trim();
+  }
+
+  return result;
+}
+
+/**
+ * Helper. Remove script tag contets that are **not already encoded**
+ * clearScriptTags("<p>hi<script>alert('XSS from old site</script></p>"); // <p>hi</p>
+ *
+ * @param   {String}   text_string
+ * @returns {String}
+ */
+function clearScriptTags(text_string) {
+  var result = null;
+  if (text_string && text_string.replace) {
+    result = text_string.replace(/<script.*?>.*?<\/script>/igm, '');
   }
 
   return result;
@@ -199,41 +215,41 @@ function DOMToMetadata1($, url, id) {
   var htmlData = {}, urlParts, articleRoot = $('#k2Container', {decodeEntities: true}), i = 0;
 
   if ($('#k2Container .itemTitle').length) {
-    htmlData.title = clearTrash($('#k2Container .itemTitle').clone().children().remove().end().text());
+    htmlData.title = clearNewLines($('#k2Container .itemTitle').clone().children().remove().end().text());
   }
   if ($('#k2Container .itemAuthor').length) {
-    htmlData.author_raw = clearTrash($('#k2Container .itemAuthor').text());
+    htmlData.author_raw = clearNewLines($('#k2Container .itemAuthor').text());
   }
   if ($('#k2Container .itemDateCreated').length) {
-    htmlData.created_at = StringToDate(clearTrash($('#k2Container .itemDateCreated').text()));
+    htmlData.created_at = StringToDate(clearNewLines($('#k2Container .itemDateCreated').text()));
   }
 
   if ($('meta[name="keywords"]').length) {
     //console.log($('meta[name="keywords"]')[0])
     //console.log($('meta[name="keywords"]').attr("content"))
     //console.log($('meta[name="keywords"]')[0].attr("content"))
-    htmlData.meta_keywords = clearTrash($('meta[name="keywords"]').attr("content"));
+    htmlData.meta_keywords = clearNewLines($('meta[name="keywords"]').attr("content"));
   }
   if ($('meta[name="description"]').length) {
-    htmlData.meta_description = clearTrash($('meta[name="description"]').attr("content"));
+    htmlData.meta_description = clearNewLines($('meta[name="description"]').attr("content"));
   }
 
   if ($('#k2Container .itemFullText').length) {
-    htmlData.text = clearTrash($('#k2Container .itemFullText').html());
+    
+    // DANGER: .html will return even <script> tags. Do not remove clearScriptTags()
+    //         if you really are not sure about this.
+    htmlData.text = clearScriptTags(clearNewLines($('#k2Container .itemFullText').html()));
   }
 
   if ($('#k2Container .itemIntroText').length) {
-    htmlData.text_intro = clearTrash($('#k2Container .itemIntroText').text());
+    htmlData.text_intro = clearNewLines($('#k2Container .itemIntroText').text());
   } else if ($('#k2Container .itemFullText p').length) {
 
     // Page do not make clear what is intro text. Get First non-empty paragraph
     i = 0;
     do {
-      //console.log($('#k2Container .itemFullText p')[i])
-      //console.log($($('#k2Container .itemFullText p')[i]).text())
-      //if ($('#k2Container .itemFullText p')[i].text().trim()) {
-      if (clearTrash($($('#k2Container .itemFullText p')[i]).text().trim())) {
-        htmlData.text_intro = clearTrash($($('#k2Container .itemFullText p')[i]).text().trim());
+      if (clearNewLines($($('#k2Container .itemFullText p')[i]).text().trim())) {
+        htmlData.text_intro = clearNewLines($($('#k2Container .itemFullText p')[i]).text().trim());
         break;
       }
       i++;

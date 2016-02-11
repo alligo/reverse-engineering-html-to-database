@@ -1,4 +1,4 @@
-# Reverse Engineering: From HTML to Database v0.3alpha
+# Reverse Engineering: From HTML to Database v0.4alpha
 
 _Did you lost your site with no Backup? Try [Google Cache Site Recover](https://github.com/alligo/google-cache-site-recover)
 to save your entire site in pure HTML files, than use this tool here to convert
@@ -41,7 +41,21 @@ who created the HTML.
 
 You can change the way this tool save your data, and even make it work with
 another database, like PostgreSQL or some No-SQL like MongoDB. Just copy
-`datatodb.dist.js` to `datatodb.js` and make your changes
+`datatodb.dist.js` to `datatodb.js` and make your changes.
+
+## How to move scrapped data from temporary table to my real database?
+This tool was created for parse HTML files and import to one typical Joomla
+CMS content table.
+
+After import data to temporaty table (see database/database.sql), you could use 
+the next code to extract data from temporaty table and save on your real site
+(in this case, a Joomla CMS Content table)
+
+```sql
+REPLACE INTO db_joomla.prefix_content (id, title, alias, catid, introtext, `fulltext`, metakey, metadesc, created_by, created_by_alias, created, `language`, access, state)
+SELECT id, title, slug, catid, IF(text_intro IS NULL OR text_intro = '', `text`, text_intro), IF(text_intro IS NULL OR text_intro = '', text_intro, `text`), meta_keywords, meta_description, created_by, author_raw, created_at, '*', '1', '1'
+FROM db_htmltodb.articles
+```
 
 ## How fast is?
 
