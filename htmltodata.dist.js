@@ -107,7 +107,7 @@ function ArticleId(url) {
  * @param   {String}  relativePath
  * @returns {String}
  */
-function  ArticleUrl(relativePath) {
+function ArticleUrl(relativePath) {
 
   if (relativePath.slice(-5) === '.html') {
     return relativePath.slice(0, -5);
@@ -126,7 +126,8 @@ function clearTrash(item) {
   var result = null;
   if (item && item.replace) {
     //result = item.replace(/[^a-z0-9\s]/gi, '').trim();
-    result = item.replace("\r\n", '').replace("\n", '').trim();
+    //result = item.replace("\r\n", '').replace("\n", '').trim();
+    result = item.replace(/(\r\n|\n|\r)/gm,"").replace("\n", '').trim();
   }
 
   return result;
@@ -163,24 +164,24 @@ function filterPageResult(htmlData) {
  */
 function StringToDate(date_string) {
   var result = null, tmp1, tpm2, dic = {
-    janeiro : "01",
-    fevereiro : "02",
-    março : "03",
-    abril : "04",
-    maio : "05",
-    junho : "06",
-    julho : "07",
-    agosto : "08",
-    setembro : "09",
-    outubro : "10",
-    novembro : "11",
-    dezembro : "12",
+    janeiro: "01",
+    fevereiro: "02",
+    março: "03",
+    abril: "04",
+    maio: "05",
+    junho: "06",
+    julho: "07",
+    agosto: "08",
+    setembro: "09",
+    outubro: "10",
+    novembro: "11",
+    dezembro: "12",
   };
   tmp1 = date_string.split(' ');
   if (tmp1.length === 5) {
     if (dic[tmp1[2].toLowerCase()]) {
       result = tmp1[3] + '-' + dic[tmp1[2].toLowerCase()] + '-' + tmp1[1]
-      + ' ' + tmp1[4] + ':00';
+              + ' ' + tmp1[4] + ':00';
     }
   }
   return result;
@@ -195,7 +196,7 @@ function StringToDate(date_string) {
  * @returns {Object}
  */
 function DOMToMetadata1($, url, id) {
-  var htmlData = {}, urlParts, articleRoot = $('#k2Container', {decodeEntities: true});
+  var htmlData = {}, urlParts, articleRoot = $('#k2Container', {decodeEntities: true}), i = 0;
 
   if ($('#k2Container .itemTitle').length) {
     htmlData.title = clearTrash($('#k2Container .itemTitle').clone().children().remove().end().text());
@@ -206,8 +207,39 @@ function DOMToMetadata1($, url, id) {
   if ($('#k2Container .itemDateCreated').length) {
     htmlData.created_at = StringToDate(clearTrash($('#k2Container .itemDateCreated').text()));
   }
+
+  if ($('meta[name="keywords"]').length) {
+    //console.log($('meta[name="keywords"]')[0])
+    //console.log($('meta[name="keywords"]').attr("content"))
+    //console.log($('meta[name="keywords"]')[0].attr("content"))
+    htmlData.meta_keywords = clearTrash($('meta[name="keywords"]').attr("content"));
+  }
+  if ($('meta[name="description"]').length) {
+    htmlData.meta_description = clearTrash($('meta[name="description"]').attr("content"));
+  }
+
   if ($('#k2Container .itemFullText').length) {
     htmlData.text = clearTrash($('#k2Container .itemFullText').html());
+  }
+
+  if ($('#k2Container .itemIntroText').length) {
+    htmlData.text_intro = clearTrash($('#k2Container .itemIntroText').text());
+  } else if ($('#k2Container .itemFullText p').length) {
+
+    // Page do not make clear what is intro text. Get First non-empty paragraph
+    i = 0;
+    do {
+      //console.log($('#k2Container .itemFullText p')[i])
+      //console.log($($('#k2Container .itemFullText p')[i]).text())
+      //if ($('#k2Container .itemFullText p')[i].text().trim()) {
+      if (clearTrash($($('#k2Container .itemFullText p')[i]).text().trim())) {
+        htmlData.text_intro = clearTrash($($('#k2Container .itemFullText p')[i]).text().trim());
+        break;
+      }
+      i++;
+    } while (i < $('#k2Container .itemFullText p').length);
+  } else {
+    htmlData.text_intro = null;
   }
 
   // O this demo, category ID is the upper path (if exist)
