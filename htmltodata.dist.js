@@ -8,6 +8,7 @@
  */
 var cheerio = require('cheerio');
 var HTMLToData;
+var config = require('./bootstrap').requireOneOf(['./config.js', './config.dist.js']);
 var data_categories = require('./bootstrap').requireOneOf(['./aditional_info/data_categories.json', './aditional_info/data_categories.dist.json']);
 //var default_category_alias = 'uncategorised';
 var default_category_id = 2;
@@ -114,6 +115,47 @@ function ArticleUrl(relativePath) {
   }
 
   return relativePath;
+}
+
+/**
+ * Helper. Load config.string_replace Object, and replace his keys for his
+ * key values
+ *
+ * @todo check consistency
+ *
+ * @param   {String}  text_string
+ * @returns {String}
+ */
+function clearCustomStrings(text_string) {
+
+/**
+ * @see http://stackoverflow.com/a/6714233/894546
+ * 
+ * @param   {String} str1
+ * @param   {String} str2
+ * @param   {String} ignore  Ignore case
+ * @returns {String}
+ */
+  function replaceAll(source, str1, str2, ignore) {
+    return source.replace(new RegExp(str1.replace(/([\/\,\!\\\^\$\{\}\[\]\(\)\.\*\+\?\|\<\>\-\&])/g, "\\$&"), (ignore ? "gi" : "g")), (typeof (str2) === "string") ? str2.replace(/\$/g, "$$$$") : str2);
+  }
+
+  if (text_string && text_string.replace) {
+    for (var prop in config.string_replace) {
+      if (config.string_replace.hasOwnProperty(prop)) {
+        //console.log('clearCustomStrings', prop, config.string_replace[prop])
+        //text_string = text_string.replace(prop, config.string_replace[prop]);
+        var debug1 = text_string;
+        text_string = replaceAll(text_string, prop, config.string_replace[prop]);
+        if (debug1.length !== text_string.length) {
+          console.log('>>>>>>>> clearCustomStrings', prop, config.string_replace[prop])
+          console.log('>>>>>>>> clearCustomStrings original', debug1);
+          console.log('>>>>>>>> clearCustomStrings novo', text_string);
+        }
+      }
+    }
+  }
+  return text_string;
 }
 
 /**
@@ -280,11 +322,13 @@ function DOMToMetadata1($, url, id) {
 
     // DANGER: .html will return even <script> tags. Do not remove clearScriptTags()
     //         if you really are not sure about this.
-    htmlData.text = cleanMSWord(clearScriptTags(clearNewLines($('#k2Container .itemFullText').html())));
+    htmlData.text = cleanMSWord(clearScriptTags(clearNewLines(clearCustomStrings(
+            $('#k2Container .itemFullText').html()))));
   }
 
   if ($('#k2Container .itemIntroText').length) {
-    htmlData.text_intro = cleanMSWord(clearNewLines($('#k2Container .itemIntroText').text()));
+    htmlData.text_intro = cleanMSWord(clearNewLines(clearCustomStrings(
+            $('#k2Container .itemIntroText').text())));
   } else if ($('#k2Container .itemFullText p').length) {
 
     // Page do not make clear what is intro text. Get First non-empty paragraph
@@ -292,7 +336,8 @@ function DOMToMetadata1($, url, id) {
     do {
       i++;
       if (clearNewLines($($('#k2Container .itemFullText p')[i]).text().trim())) {
-        temp = cleanMSWord(clearNewLines($($('#k2Container .itemFullText p')[i]).text().trim()));
+        temp = cleanMSWord(clearNewLines(clearCustomStrings(
+                $($('#k2Container .itemFullText p')[i]).text().trim())));
         if (temp.length < 64) {
 
           // Too short. Provably just Spamm and not useful

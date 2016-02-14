@@ -18,6 +18,11 @@ config.database.password = '';
 config.htmls_path = '/path/to/your/htmls/files';
 // If parsing a subfolder of your site, but want to prefix the URL with top path:
 config.htmls_path_prefix = '';
+config.string_replace = {
+  "PutHereAFullStringOrRegex": "ForWhatYouWantToReplace",
+  'src="http://absolutapathtoyoursite.com/': 'src="/', // Remove absolute path and just stay with relative path
+  "YouCanSimplyChooseReplaceForEmptyResult": ""
+};
 config.file_filters = ['*.html', '*.htm', '*.php', '*.jsp'];
 
 module.exports = config;
